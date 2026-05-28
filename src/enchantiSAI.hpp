@@ -15,30 +15,69 @@ enum STANDARD_SAMPLING_RATES {
 class enchantiSAI
 {
     public:
+        struct i2s_pin_config {
+            int8_t DIN  = -1;
+            int8_t DOUT = -1;
+            int8_t BCLK = -1;
+            int8_t WSEL = -1;
+            int8_t MCLK = -1;
+        };
         struct i2s_config {
             AudioInfo info;
-            I2SConfig i2s_cfg;
+            RxTxMode mode = RXTX_MODE;
+            int i2s_port = 0;
+            I2SSignalType signal_type = I2SSignalType::Digital; 
+            I2SFormat i2s_format = I2SFormat::I2S_STD_FORMAT; 
+            i2s_pin_config pins;
         };
         // I2S stream class
         I2SStream *_stream = NULL;
 
-        // Config
-        I2SConfig cfg;
-
         // Audio Info
-        AudioInfo info;
+        int channels;
+        int sample_rate;
+        int bps;
 
         // Initialise I2S interface
         bool begin(i2s_config *config) {
             // Set i2s Stream
             _stream = new I2SStream;
 
-            // Get the config and audio info from the structure
-            cfg = config->i2s_cfg;
-            info = config->info;
+            // Get Audio information from config structure
+            channels = config->info.channels;
+            sample_rate = config->info.sample_rate;
+            bps = config->info.bits_per_sample;
 
-            // Update config with audio info
-            cfg.copyFrom(info);
+            /* Set up i2s stream configuration */
+            auto cfg = _stream->defaultConfig(config->mode);
+            cfg.copyFrom(config->info);
+
+            // Setup I2S Format
+            cfg.port_no = config->i2s_port;
+            cfg.signal_type = config->signal_type;
+            cfg.i2s_format = config->i2s_format;
+
+            // Set up pins
+            cfg.pin_ws      = config->pins.WSEL;
+            cfg.pin_bck     = config->pins.BCLK;
+            cfg.pin_mck     = config->pins.MCLK;
+            switch (config->mode)
+            {
+            case RXTX_MODE:
+                cfg.pin_data    = config->pins.DOUT;
+                cfg.pin_data_rx = config->pins.DIN;
+                break;
+            case TX_MODE:
+                cfg.pin_data    = config->pins.DOUT;
+                cfg.pin_data_rx = -1;
+                break;
+            case RX_MODE:
+                cfg.pin_data    = config->pins.DIN;
+                cfg.pin_data_rx = -1;
+                break;
+            default:
+                break;
+            }
 
             // Start the stream
             _stream->begin(cfg);
