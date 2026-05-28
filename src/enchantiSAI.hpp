@@ -31,7 +31,7 @@ class enchantiSAI
             i2s_pin_config pins;
         };
         // I2S stream class
-        I2SStream *_stream = NULL;
+        I2SStream _stream;
 
         // Audio Info
         int channels;
@@ -40,16 +40,13 @@ class enchantiSAI
 
         // Initialise I2S interface
         bool begin(i2s_config *config) {
-            // Set i2s Stream
-            _stream = new I2SStream;
-
             // Get Audio information from config structure
             channels = config->info.channels;
             sample_rate = config->info.sample_rate;
             bps = config->info.bits_per_sample;
 
             /* Set up i2s stream configuration */
-            auto cfg = _stream->defaultConfig(config->mode);
+            auto cfg = _stream.defaultConfig(config->mode);
             cfg.copyFrom(config->info);
 
             // Setup I2S Format
@@ -80,28 +77,28 @@ class enchantiSAI
             }
 
             // Start the stream
-            _stream->begin(cfg);
+            _stream.begin(cfg);
         };
 
         // Check status of interface
         int available() {
-            return _stream->available();
+            return _stream.available();
         }
         int peek() {
-            return _stream->peek();
+            return _stream.peek();
         }
 
         // Read Methods
         int read() {
-            return _stream->read();
+            return _stream.read();
         }
         size_t readBytes(uint8_t *buffer, size_t size) {
-            return _stream->readBytes(buffer, size);
+            return _stream.readBytes(buffer, size);
         }
 
         // Write methods
         size_t write(const uint8_t *buffer, size_t size) {
-            return _stream->write(buffer, size);
+            return _stream.write(buffer, size);
         }
 };
 
