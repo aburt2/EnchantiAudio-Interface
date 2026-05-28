@@ -77,7 +77,7 @@ class enchantiSAI
             }
 
             // Start the stream
-            _stream.begin(cfg);
+            return _stream.begin(cfg);
         };
 
         // Check status of interface
